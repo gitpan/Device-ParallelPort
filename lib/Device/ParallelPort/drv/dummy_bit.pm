@@ -14,6 +14,12 @@ This is a dummy driver. Purely built to test the primary driver.
 
 None what so ever. Basically just store bits in an array !
 
+=head1 COPYRIGHT
+
+Copyright (c) 2002,2004 Scott Penrose. All rights reserved.
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
 =head1 AUTHOR
 
 Scott Penrose L<scottp@dd.com.au>, L<http://linux.dd.com.au/>

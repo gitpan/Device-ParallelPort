@@ -1,7 +1,7 @@
 package Device::ParallelPort;
-
 use vars qw/$AUTOLOAD $VERSION/;
-$VERSION = "0.03";
+$VERSION = "1.00";
+use Carp;
 
 =head1 NAME
 
@@ -9,10 +9,11 @@ Device::ParallelPort - Parallel Port Driver for Perl
 
 =head1 SYNOPSIS
 
-	my $port = Device::ParallelPort->new('auto:0');
+	my $port = Device::ParallelPort->new();
 	$port->set_bit(3,1);
 	print $port->get_bit(3) . "\n";
 	print ord($port->get_byte(0)) . "\n";
+	$port->set_byte(0, chr(255));
 
 =head1 DESCRIPTION
 
@@ -20,7 +21,13 @@ A parallel port driver module. This module provides an API to all parallel ports
 providing the ability to write any number of drivers. Modules are available for linux
 (both directly and via parport), win32 and a simple script version.
 
+NOTE - This actual module is a factory class only - it is used to automatically
+return the correct class and has not other intelligence / purpose.
+
 =head1 DRIVER MODULES
+
+NOTE - You MUST load one of the drivers for your operating system before this
+module will correctly work - they are in separate CPAN Modules.
 
 	L<Device::ParallelPort::drv::linux> - Direct hardware access to a base address.
 	L<Device::ParallelPort::drv::parport> - Linux access to /dev/parport drivers
@@ -33,6 +40,7 @@ providing the ability to write any number of drivers. Modules are available for 
 
 	L<Device::ParallelPort::Printer> - An example that can talk to a printer
 	L<Device::ParallelPort::JayCar> - Simple JayCar electronics latched, addressable controller
+	L<Device::ParallelPort::SerialFlash> - SerialFlash of bits - useful for many driver chips
 
 =head1 METHODS
 
@@ -79,6 +87,8 @@ almost all parallel chips allow all three bytes to be inputs or outputs,
 however drivers such as linux parallel port does not allow you to write to the
 status byte.
 
+NOTE - VALUE must be a single charachter - NOT an integer. Use chr(interger).
+
 =item get_data ( )
 
 =item set_data ( VALUE )
@@ -103,13 +113,88 @@ Lots... This is not a fast driver. It is designed to give you simple access to
 a very old device, the parallel chip. Don't, whatever you do, use this for
 drivers that need fast access.
 
+=head1 DISCUSSIONS
+
+=head2 Hardware
+
+Following is the standard hardware table, so that you can find the correct pins
+and information. Note also the Inverted flag.
+
+A number of real projects have been produced using Device::ParallelPort. For
+futher information see L<http://linux.dd.com.au/quest/os-perl/parallelport/>
+
+Pin No (DB25) - Signal name - Direction - Register - bit - Inverted
+
+1 - nStrobe - Out - Control-0 - Yes
+
+2 - Data0 - In/Out - Data-0 - No
+
+3 - Data1 - In/Out - Data-1 - No
+
+4 - Data2 - In/Out - Data-2 - No
+
+5 - Data3 - In/Out - Data-3 - No
+
+6 - Data4 - In/Out - Data-4 - No
+
+7 - Data5 - In/Out - Data-5 - No
+
+8 - Data6 - In/Out - Data-6 - No
+
+9 - Data7 - In/Out - Data-7 - No
+
+1 - 0 nAck - In - Status-6 - No
+
+1 - 1 Busy - In - Status-7 - Yes
+
+1 - 2 Paper-Out - In - Status-5 - No
+
+1 - 3 Select - In - Status-4 - No
+
+1 - 4 Linefeed - Out - Control-1 - Yes
+
+1 - 5 nError - In - Status-3 - No
+
+1 - 6 nInitialize - Out - Control-2 - No
+
+1 - 7 nSelect-Printer - Out - Control-3 - Yes
+
+18-25 - Ground
+
 =head1 BUGS
 
-Not known yet, but hey it is new...
+Not known yet. Windows support is new so expect some.
 
 =head1 TODO
 
-Refer to TODO list with package.
+Refer to TODO list with packages and code.
+
+=head1 HISTORY
+
+History here covers central Device::ParallelPort and not the specific drivers,
+see them individually. For full history see Changes in the package.
+
+=over
+
+=item 0.04 - First release
+
+Basic first release. Worked for Linux ROOT and Linux parport drivers only.
+Windows work only in early pre-alpha testing. 
+
+=item 1.00 - First stable release
+
+Stable - I beleive it is stable, but this is only on my own testing and
+machines. Lots of imporvements to documentation, auto load modules etc.
+Improved use of perl.  In particular this is the first release of Windows and a
+fully working auto driver.
+
+=back
+
+=head1 COPYRIGHT
+
+Copyright (c) 2002,2003,2004 Scott Penrose. All rights reserved.
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =head1 AUTHOR
 
@@ -117,41 +202,22 @@ Scott Penrose L<scottp@dd.com.au>, L<http://linux.dd.com.au/>
 
 =head1 SEE ALSO
 
-L<Device::ParallelPort>
+L<Device::ParallelPort::drv> for developing a driver.
 
 =cut
 
 sub new {
 	my ($class, $drvstr, @params) = @_;
-	my $this = bless {}, ref($class) || $class;
+	my $this = undef;
 	my ($drv, $str) = split(/:/, $drvstr, 2);
+	$drv ||= "auto";
+	$str ||= "0";
 	eval qq{
 		use Device::ParallelPort::drv::$drv;
-		\$this->{DRV} = Device::ParallelPort::drv::$drv->new(\$str, \@params);
+		\$this = Device::ParallelPort::drv::$drv->new(\$str, \@params);
 	};
-	die "Can't create driver $drv - $@" if ($@);
+	croak "Device::ParallelPort unabel to create driver $drv (see Device::ParallelPort::drv::auto for further information) - $@" if ($@);
 	return $this;
-}
-
-# INHERITED METHODS FROM DRIVER, or contains ?
-
-sub _drv {
-	my ($this) = @_;
-	return $this->{DRV};
-}
-
-sub AUTOLOAD {
-	my ($this, @params) = @_;
-
-        my $name = $AUTOLOAD;
-        $name =~ s/.*://;   # strip fully-qualified portion
-	if (defined($this->_drv) && $this->_drv->can($name)) {
-		$this->_drv->$name(@params);
-	} elsif ($name eq "DESTROY") {
-		# Do nothing if there was no DESTROY above
-	} else {
-		die "Invalid method $name";
-	}
 }
 
 1;

@@ -17,14 +17,12 @@ To install this module type the following:
 
 DEPENDENCIES
 
-This module requires these other modules and libraries:
-
-	Usual IO::File and other standard modules
+This module requires only core modules such as IO::File.
 
 COPYRIGHT AND LICENCE
 
-Distributed under the Perl Artistic License
+Distributed under the Perl Artistic License and the GPL
 
-Copyright (C) 2002 Scott Penrose - scottp@dd.com.au
+Copyright (C) 2002,2003,2004 Scott Penrose - scottp@dd.com.au
 
 
