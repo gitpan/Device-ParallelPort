@@ -6,6 +6,7 @@ lib/Device/ParallelPort/drv/auto.pm
 lib/Device/ParallelPort/drv/script.pm
 lib/Device/ParallelPort/drv/dummy_bit.pm
 lib/Device/ParallelPort/drv/dummy_byte.pm
+LICENSE
 MANIFEST
 Makefile.PL
 test/dummy

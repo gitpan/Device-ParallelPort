@@ -1,6 +1,12 @@
 Revision history for Perl extension Device::ParallelPort.
 
-0.?  Mon Mar 31 11:11:53 1997
-	- ?
+0.01  Mon May  1 22:52:02 EST 2002
+	- Initial non working pre-alpha version
+
+0.02  Mon May  4 22:52:02 EST 2002
+	- First alpha release
+
+0.03  Mon May  6 22:52:02 EST 2002
+	- Include more POD and LICENSE
 
 

@@ -1,7 +1,7 @@
 package Device::ParallelPort;
 
 use vars qw/$AUTOLOAD $VERSION/;
-$VERSION = "0.02";
+$VERSION = "0.03";
 
 =head1 NAME
 
@@ -22,17 +22,94 @@ providing the ability to write any number of drivers. Modules are available for 
 
 =head1 DRIVER MODULES
 
-	Device::ParallelPort::drv::linux - Direct hardware access to a base address.
-	Device::ParallelPort::drv::parport - Linux access to /dev/parport drivers
-	Device::ParallelPort::drv::script - Run a script with parameters
-	Device::ParallelPort::drv::dummy_byte - Pretending byte driver for testing
-	Device::ParallelPort::drv::dummy_bit - Pretending bit driver for testing
-	Device::ParallelPort::drv::win32 - Windows 32 DLL access driver
+	L<Device::ParallelPort::drv::linux> - Direct hardware access to a base address.
+	L<Device::ParallelPort::drv::parport> - Linux access to /dev/parport drivers
+	L<Device::ParallelPort::drv::script> - Run a script with parameters
+	L<Device::ParallelPort::drv::dummy_byte> - Pretending byte driver for testing
+	L<Device::ParallelPort::drv::dummy_bit> - Pretending bit driver for testing
+	L<Device::ParallelPort::drv::win32> - Windows 32 DLL access driver
 
 =head1 DEVICE MODULES
 
-	Device::ParallelPort::Printer - An example that can talk to a printer
-	Device::ParallelPort::JayCar - Simple JayCar electronics latched, addressable controller
+	L<Device::ParallelPort::Printer> - An example that can talk to a printer
+	L<Device::ParallelPort::JayCar> - Simple JayCar electronics latched, addressable controller
+
+=head1 METHODS
+
+=head2 new
+
+=head1 CONSTRUCTOR
+
+=over 4
+
+=item new ( DRIVER )
+
+Creates a C<Device::ParallelPort>. 
+
+=back
+
+=head1 METHODS
+
+=over 4
+
+=item get_bit( BITNUMBER )
+
+You can get any bit that is supported by this particular driver. Normally you
+can consider a printer driver having 3 bytes (that is 24 bits would you
+believe). Don't forget to start bits at 0. The driver will most likely croak if
+you ask for a bit out of range.
+
+=item get_byte ( BYTENUMBER )
+
+Bytes are some times more convenient to deal with, certainly they are in most
+drivers and therefore most Devices. As per get_bit most drivers only have
+access to 3 bytes (0 - 2).
+
+=item set_bit ( BITNUMBER, VALUE )
+
+Setting a bit is very handy method. This is the method I use above all others,
+in particular to turn on and off rellays.
+
+=item set_byte ( BYTENUMBER, VALUE )
+
+Bytes again. Don't forget that some devices don't allow you to write to some
+locations. For example the stock standard parallel controller does not allow
+you to write to the status entry. This is actually a ridiculous limitation as
+almost all parallel chips allow all three bytes to be inputs or outputs,
+however drivers such as linux parallel port does not allow you to write to the
+status byte.
+
+=item get_data ( )
+
+=item set_data ( VALUE )
+
+=item get_control ( )
+
+=item set_control ( VALUE )
+
+=item get_status ( )
+
+=item set_status ( VALUE )
+
+The normal parallel port is broken up into three bytes. The first is data,
+second is control and third is status. Therefore for this reason these three
+bytes are controlled by the above methods.
+
+=back
+
+=head1 LIMITATIONS
+
+Lots... This is not a fast driver. It is designed to give you simple access to
+a very old device, the parallel chip. Don't, whatever you do, use this for
+drivers that need fast access.
+
+=head1 BUGS
+
+Not known yet, but hey it is new...
+
+=head1 TODO
+
+Refer to TODO list with package.
 
 =head1 AUTHOR
 
@@ -57,10 +134,6 @@ sub new {
 }
 
 # INHERITED METHODS FROM DRIVER, or contains ?
-#	- set_bit
-#	- get_bit
-#	- set_byte
-#	- get_byte
 
 sub _drv {
 	my ($this) = @_;
